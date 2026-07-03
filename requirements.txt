@@ -1,0 +1,27 @@
+# Halal Duff Studio — Python deps (Python 3.12). Also needs system ffmpeg + yt-dlp:
+#   brew install ffmpeg yt-dlp
+# Then:  python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+#
+# torch/torchaudio here are the CPU/MPS macOS builds. On an NVIDIA machine install the
+# matching CUDA build of torch first, then the rest.
+
+fastapi==0.139.0
+uvicorn==0.49.0
+runpod==1.10.0
+
+# audio separation (pin these three together — the roformer wrapper is version-sensitive)
+demucs==4.0.1
+audio-separator==0.44.2
+onnxruntime==1.27.0
+
+# dsp / io
+soundfile==0.14.0
+librosa==0.11.0
+numpy==2.4.6
+scipy==1.18.0
+torch==2.12.1
+torchaudio==2.11.0
+
+# download
+yt-dlp==2026.6.9
+requests==2.34.2

@@ -1,0 +1,16 @@
+#!/bin/bash
+# Halal Duff Studio launcher — starts the local server (if needed), waits for it to answer, opens the app.
+APP_DIR="$(cd "$(dirname "$0")/../.." && pwd)"   # .../Halal Duff Studio.app
+ROOT="$(dirname "$APP_DIR")"                      # project root (the .app lives inside it)
+cd "$ROOT/studio" 2>/dev/null || exit 1
+PY="$ROOT/.venv/bin/python"
+[ -x "$PY" ] || { open "$ROOT/README.md"; exit 1; }   # no venv yet -> show setup instructions
+if ! lsof -tiTCP:7860 -sTCP:LISTEN >/dev/null 2>&1; then
+  PYTORCH_ENABLE_MPS_FALLBACK=1 HF_HUB_DISABLE_TELEMETRY=1 nohup "$PY" server.py >/tmp/duffstudio.log 2>&1 &
+  for i in $(seq 1 40); do curl -sf http://127.0.0.1:7860/api/config >/dev/null 2>&1 && break; sleep 0.5; done
+fi
+if curl -sf http://127.0.0.1:7860/api/config >/dev/null 2>&1; then
+  open "http://127.0.0.1:7860"
+else
+  open /tmp/duffstudio.log
+fi

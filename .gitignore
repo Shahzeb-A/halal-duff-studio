@@ -1,0 +1,36 @@
+# ── copyrighted audio & user data (NEVER commit) ──────────────
+# rendered masters, cover art derived from source video, playlists — all stay local
+Masters/
+work/
+studio/work/
+*.m4a
+*.mp4
+*.webm
+*.part
+*.ytdl
+
+# ── secrets ───────────────────────────────────────────────────
+.runpod_key
+*.key
+.env
+
+# ── python / venv ─────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── local experiments & internal notes (kept off the public repo) ──
+archive/
+HANDOFF.md
+START_PROMPT.txt
+HALAL_RESEARCH.md
+HALAL_DUFF_WORKFLOW.md
+VOICE_MODEL_RESEARCH.md
+
+# ── os / editor cruft ─────────────────────────────────────────
+.DS_Store
+*.log
+
+# NOTE: duff_samples/*.wav (CC0 frame drums) and reverb_ir_clean.wav are intentionally
+# NOT ignored — they are needed to run and are freely licensed.
