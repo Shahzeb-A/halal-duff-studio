@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>DevelMo · Halal Duff Studio</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 :root{
@@ -24,9 +25,9 @@ body::before{content:"";position:fixed;left:-180px;top:-160px;width:520px;height
   grid-template-areas:"side main" "now now";height:100vh;gap:0;padding:10px;gap:10px}
 .sidebar{grid-area:side;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px 16px;display:flex;flex-direction:column}
 .logo{display:flex;align-items:center;gap:10px;padding:2px 6px 24px}
-.logo .mk{width:30px;height:30px;flex:none}
+.logo .mk{width:34px;height:34px;flex:none}
 .logo .wm{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.01em}
-.logo .wm b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo .wm b{color:#C4703F}
 .nav{display:flex;flex-direction:column;gap:4px}
 .nav a{display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:10px;color:var(--mut);cursor:pointer;
   font-weight:500;font-size:14.5px;transition:all .16s cubic-bezier(.22,1,.36,1)}
@@ -141,8 +142,14 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 <div class="app">
   <div class="sidebar">
     <div class="logo">
-      <svg class="mk" viewBox="0 0 40 40" fill="none"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3DE9C0"/><stop offset="1" stop-color="#23B5E8"/></linearGradient></defs>
-        <path d="M8 6 h13 a14 14 0 0 1 0 28 H8 Z" stroke="url(#g)" stroke-width="3.4" fill="none"/><path d="M14 13 L22 20 L14 27 Z" fill="url(#g)"/></svg>
+      <svg class="mk" viewBox="0 0 80 80" fill="none" aria-label="Halal Duff Studio">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#C4703F" stroke-width="1.5"/>
+        <circle cx="40" cy="40" r="25.5" fill="#F4E8CE"/>
+        <circle cx="40" cy="40" r="25.5" fill="none" stroke="#C4703F" stroke-width="4.5"/>
+        <g stroke="#C4703F" stroke-width="2" stroke-linecap="round">
+          <line x1="70" y1="40" x2="73.5" y2="40"/><line x1="61.2" y1="61.2" x2="63.7" y2="63.7"/><line x1="40" y1="70" x2="40" y2="73.5"/><line x1="18.8" y1="61.2" x2="16.3" y2="63.7"/><line x1="10" y1="40" x2="6.5" y2="40"/><line x1="18.8" y1="18.8" x2="16.3" y2="16.3"/><line x1="40" y1="10" x2="40" y2="6.5"/><line x1="61.2" y1="18.8" x2="63.7" y2="16.3"/>
+        </g>
+        <path d="M25 41 C30 31 35 49 40 40 C45 31 50 49 55 40" fill="none" stroke="#2B2016" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="wm">Duff<b>Studio</b></div>
     </div>
     <div class="nav">

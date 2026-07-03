@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🎵 Halal Duff Studio
+<img src="studio/web/logo.svg" width="104" alt="Halal Duff Studio logo"/>
+
+# Halal Duff Studio
 
 ### Turn any song into a *halal* version — its own voice, carried by a real frame-drum.
 

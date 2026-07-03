@@ -110,6 +110,9 @@ def _job(fn):
 @app.get("/")
 def index(): return FileResponse(os.path.join(WEB, "index.html"), headers={"Cache-Control": "no-store, max-age=0"})
 
+@app.get("/favicon.svg")
+def favicon(): return FileResponse(os.path.join(WEB, "favicon.svg"), media_type="image/svg+xml")
+
 @app.get("/api/library")
 def library(): return JSONResponse(_library())
 
