@@ -168,6 +168,25 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 .vchip.mt,.vchip.mt b{color:var(--teal)}
 .veruse{flex:none;background:transparent;border:1px solid var(--line2);color:var(--mut);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
 .veruse:hover{border-color:var(--teal);color:var(--teal)}
+.nphead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stagetoggle{display:flex;gap:4px;background:#0b1a33;border:1px solid var(--line2);border-radius:11px;padding:3px;margin:14px 6px 0}
+.stpill{background:transparent;border:none;color:var(--mut);font-size:12.5px;font-weight:500;padding:7px 15px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.stpill.on{background:var(--grad);color:#06121f;font-weight:600}
+#vid{pointer-events:none}
+.auditbar{max-width:680px;margin:14px auto 0;display:flex;align-items:center;gap:14px;padding:11px 16px;border:1px solid var(--line);border-left:3px solid #C4703F;border-radius:11px;background:linear-gradient(90deg,rgba(196,112,63,.14),transparent)}
+.auditbar #auditxt{flex:1;font-size:13px;color:var(--ink)}
+.auditbar .btn2{flex:none;padding:7px 14px;font-size:12px}
+.vgroup{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:20px 2px 11px}
+.vgroup .vg-help{color:var(--dim);text-transform:none;letter-spacing:0;font-size:11.5px;font-weight:400;margin-left:9px}
+.verrow.orig{box-shadow:inset 3px 0 0 #C4703F}
+.verrow.edit{box-shadow:inset 3px 0 0 #35DBC2}
+.verrow.on{box-shadow:0 0 0 1px var(--teal) inset}
+.stpill2{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#06121f;background:#C4703F;padding:2px 8px;border-radius:20px;font-weight:600}
+.versum{font-size:12.5px;color:var(--mut);margin-top:2px}
+.verorigbody{font-size:12.5px;color:var(--mut);margin-top:2px}
+.vertoggle{font-size:11px;color:var(--teal);cursor:pointer;margin-top:8px;display:inline-block;user-select:none}
+.versettings{margin-top:9px}
+.emptyedits{color:var(--dim);font-size:12.5px;padding:8px 2px;line-height:1.55}
 .hidden{display:none!important}
 </style>
 </head>
@@ -197,7 +216,7 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
     </div>
     <div class="side-foot">
       <div class="setrow" id="gear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2l-.3-2.5H8.7l-.3 2.5a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 004.9 12a7 7 0 00.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 002 1.2l.3 2.5h4.6l.3-2.5a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5A7 7 0 0019 12z"/></svg>Settings · GPU key</div>
-      <div class="tag">Built by <b>DevelMo</b> · voice + duff only</div>
+      <div class="tag">Built by <b>Shahzeb Ali</b> · voice + duff only</div>
     </div>
   </div>
 
@@ -227,12 +246,18 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
     </div>
 
     <div id="view-now" class="hidden">
-      <div class="npeyebrow">Now Playing</div>
+      <div class="nphead">
+        <div class="npeyebrow">Now Playing</div>
+        <div class="stagetoggle" id="stagetoggle" style="display:none">
+          <button class="stpill on" data-mode="video" role="button" tabindex="0">Music video</button><button class="stpill" data-mode="wave" role="button" tabindex="0">Audio</button>
+        </div>
+      </div>
       <div class="npstage">
-        <video id="vid" controls></video>
+        <video id="vid" muted playsinline></video>
         <div class="nowart" id="nowart"></div>
         <canvas id="wave"></canvas>
       </div>
+      <div id="auditbar" class="auditbar hidden"><span id="auditxt">Auditioning</span><button class="btn2" id="auditback">Back to my mix</button></div>
       <div class="nowmeta"><div class="nptt" id="nptt">Nothing playing yet</div><div class="npsb" id="nowsub">pick a song from your library or convert one</div></div>
       <div id="versions" class="verwrap"></div>
     </div>
@@ -324,7 +349,8 @@ const SLIDERS=[
   ["brightness","Brightness",-4,6,0.5,0,0,"Air & sparkle up top. Below 0 darkens it, above 0 opens it up."],
   ["vocal_duck","Vocal duck",0,0.8,0.05,0.55,1,"How much the drum steps out of the way of the voice. Higher = clearer vocal."]];
 const PMAP={heaviness:"sub_vs_lead",duff_level:"duff_level",sub_depth:"sub_lp",beat_swell:"sub_follow",brightness:"bright_db",vocal_duck:"duck"};
-let items=[], current=null, media=$("au"), peaks=null, playlists={}, curPl=null, baseList=[], queue=[], busy=false;
+const DEFKNOBS={};SLIDERS.forEach(s=>DEFKNOBS[PMAP[s[0]]]=s[5]);
+let items=[], current=null, media=$("au"), peaks=null, playlists={}, curPl=null, baseList=[], queue=[], busy=false, stageMode="video", auditing=null;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function grad(name){let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0; const a=170+(h%50); const b=(a+40)%360;
@@ -359,47 +385,107 @@ function paintWave(prog){if(!peaks)return;const cv=$("wave"),W=cv.parentElement.
   for(let i=0;i<n;i++){const h=Math.max(2,peaks[i]*(H-8)),x=i*(bw+gp),y=(H-h)/2;ctx.fillStyle=(i/n)<prog?"#35DBC2":"#2b4062";ctx.fillRect(x,y,bw,h);}}
 
 function setPlayIcon(p){$("playicon").innerHTML=p?'<rect x="2" y="1" width="3.5" height="14" fill="currentColor"/><rect x="8.5" y="1" width="3.5" height="14" fill="currentColor"/>':'<path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/>';}
-function playTrack(it){current=it;
-  $("nptitle").textContent=it.name; setArt($("npart"),it,34);
-  $("dl").href=it.video||it.audio; $("dl").setAttribute("download",it.name+(it.video?".mp4":".m4a"));
-  const vidStage=!!it.video;
-  $("vid").style.display=vidStage?"block":"none"; $("wave").style.display=vidStage?"none":"block";
-  $("nptt").textContent=it.name; $("nowsub").textContent=it.video?"music video · voice + duff":"voice + duff";const nowart=$("nowart");
-  if(vidStage){media=$("vid");$("au").pause();$("vid").src=it.video;nowart.style.display="none";}
-  else{media=$("au");$("vid").pause();$("au").src=it.audio;drawWave(it.audio);nowart.style.display="flex";setArt(nowart,it,120);}
-  media.play().catch(()=>{});loadVersions(it.name);}
-const KNAME={sub_vs_lead:"Heaviness",duff_level:"Duff",sub_lp:"Sub depth",sub_follow:"Swell",duck:"Duck",bright_db:"Bright"};
+function playTrack(it){current=it;auditing=null;$("auditbar").classList.add("hidden");
+  $("nptitle").textContent=it.name;$("nptt").textContent=it.name;setArt($("npart"),it,34);
+  $("dl").href=it.video||it.audio;$("dl").setAttribute("download",it.name+(it.video?".mp4":".m4a"));
+  stageMode=it.video?"video":"wave";
+  media=$("au");$("au").src=it.audio;                       // audio is ALWAYS the source of truth (the current m4a mix)
+  if(it.video){$("vid").src=it.video;$("vid").muted=true;}  // video is a muted, synced visual layer
+  else{drawWave(it.audio);setArt($("nowart"),it,120);}
+  applyStage();updateSub();$("au").play().catch(()=>{});loadVersions(it.name);}
 function ago(ts){if(!ts)return"";const s=Math.max(0,Math.floor(Date.now()/1000-ts));
   if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";}
 function applyKnobs(k){SLIDERS.forEach(s=>{const pk=PMAP[s[0]];if(k&&k[pk]!=null){const v=Math.round(k[pk]*100)/100;$("s-"+s[0]).value=v;$("v-"+s[0]).textContent=v.toString();}});}
+function applyStage(){const hasVid=!!(current&&current.video);
+  $("stagetoggle").style.display=hasVid?"flex":"none";
+  document.querySelectorAll("#stagetoggle .stpill").forEach(b=>b.classList.toggle("on",b.dataset.mode===stageMode));
+  const showVid=hasVid&&stageMode==="video";
+  $("vid").style.display=showVid?"block":"none";$("wave").style.display=showVid?"none":"block";$("nowart").style.display=showVid?"none":"flex";}
+function updateSub(){if(!current){$("nowsub").textContent="pick a song from your library or convert one";return;}
+  if(auditing){$("nowsub").innerHTML="Auditioning <b>"+esc(auditing.label)+"</b> · "+(current.video?"tap Music video or Back to my mix to return":"Back to my mix to return");return;}
+  $("nowsub").textContent=(current.video&&stageMode==="video")?"music video · voice + duff":"voice + duff";}
+function markPlayingRow(){document.querySelectorAll(".verrow").forEach(r=>r.classList.toggle("on",r.classList.contains("is-current")));}
+function returnToMaster(){if(!current)return;auditing=null;$("auditbar").classList.add("hidden");
+  media=$("au");$("au").src=current.audio;$("au").play().catch(()=>{});
+  if(current.video&&stageMode==="video")$("vid").muted=true;else drawWave(current.audio);
+  applyStage();updateSub();markPlayingRow();}
+function setStageMode(mode){if(!current)return;if(!current.video)mode="wave";
+  if(auditing){stageMode=mode;returnToMaster();return;}
+  stageMode=mode;
+  if(mode==="video"){$("vid").muted=true;if(!$("au").paused)$("vid").play().catch(()=>{});}else{drawWave(current.audio);}
+  applyStage();updateSub();}
+function auditionVersion(vobj,row){if(row.classList.contains("is-current")){returnToMaster();return;}
+  auditing={url:vobj.audio,label:row.dataset.label||("Edit "+vobj.v)};
+  media=$("au");$("au").src=vobj.audio;
+  if(current&&current.video&&stageMode==="video")$("vid").muted=true;else drawWave(vobj.audio);
+  $("au").play().catch(()=>{});
+  document.querySelectorAll(".verrow").forEach(x=>x.classList.remove("on"));row.classList.add("on");
+  $("auditxt").innerHTML="Auditioning <b>"+esc(auditing.label)+"</b> — this isn’t your saved mix";
+  $("auditbar").classList.remove("hidden");updateSub();}
+function lvl(v,mn,mx){const t=(v-mn)/(mx-mn);return t<0.34?0:t<0.67?1:2;}
+function meter(n){return "●".repeat(n+1)+"○".repeat(2-n);}
+function chipsHTML(k){if(!k)return"";const o=[],add=(l,t)=>o.push('<span class="vchip">'+l+' <b>'+t+'</b></span>');
+  if(k.sub_vs_lead!=null){const n=lvl(k.sub_vs_lead,0.4,6);add("Heaviness",meter(n)+" "+["low","med","high"][n]);}
+  if(k.duff_level!=null){const n=lvl(k.duff_level,0.6,1.4);add("Duff",["soft","med","loud"][n]);}
+  if(k.sub_lp!=null)add("Sub",k.sub_lp<95?"deeper":k.sub_lp>95?"tighter":"balanced");
+  if(k.sub_follow!=null)add("Swell",k.sub_follow>=1.5?"high":"low");
+  if(k.duck!=null)add("Vocal",k.duck>=0.5?"clear":"blended");
+  if(k.bright_db!=null&&Math.abs(k.bright_db)>0.1)add("Tone",(k.bright_db>0?"brighter +":"darker ")+k.bright_db);
+  return o.join("");}
+function summarize(k,o){if(!k)return"Custom tuning";o=o||{};const base=key=>(o[key]!=null?o[key]:DEFKNOBS[key]),c=[];
+  const dh=(k.sub_vs_lead!=null?k.sub_vs_lead-base("sub_vs_lead"):0)+(k.duff_level!=null?(k.duff_level-base("duff_level"))*4:0);
+  if(dh>0.5)c.push("heavier beat");else if(dh<-0.5)c.push("lighter beat");
+  if(k.sub_lp!=null){const d=k.sub_lp-base("sub_lp");if(d<-6)c.push("deeper thump");else if(d>6)c.push("tighter thump");}
+  if(k.duck!=null){const d=k.duck-base("duck");if(d>0.06)c.push("vocals kept clear");else if(d<-0.06)c.push("vocals more blended");}
+  if(k.bright_db!=null){const d=k.bright_db-base("bright_db");if(d>0.6)c.push("brighter");else if(d<-0.6)c.push("darker");}
+  if(!c.length)return"Custom tuning";const s=c.slice(0,2).join(", ");return s.charAt(0).toUpperCase()+s.slice(1);}
 async function loadVersions(name){const box=$("versions");if(!box)return;
   let vs=[];try{vs=await(await fetch("/api/versions/"+encodeURIComponent(name))).json();}catch(e){}
   if(!Array.isArray(vs)||!vs.length){box.innerHTML="";return;}
-  const cur=vs.find(v=>v.current)||vs[vs.length-1];applyKnobs(cur.knobs);   // sliders reflect the current mix
-  box.innerHTML='<div class="vhead">Versions · '+vs.length+' · tap to A/B compare</div>'+vs.slice().reverse().map(v=>{
-    const k=v.knobs||{};
-    const label=(v.label==="original")?"Original":("Version "+v.v);
-    const chips=Object.keys(KNAME).filter(pk=>k[pk]!=null).map(pk=>'<span class="vchip">'+KNAME[pk]+' <b>'+esc(k[pk])+'</b></span>').join("")
-      +(v.closeness!=null?'<span class="vchip mt">Match <b>'+esc(v.closeness)+'%</b></span>':'');
-    const badge=v.current?'<span class="curbadge">current</span>':'';
-    const use=v.current?'':'<button class="veruse" data-v="'+v.v+'" title="Make this your main mix">Use</button>';
-    return '<div class="verrow'+(v.current?' on is-current':'')+'" data-audio="'+encodeURI(v.audio)+'"><button class="verplay" aria-label="play version"><svg width="12" height="14" viewBox="0 0 14 16"><path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/></svg></button><div class="verinfo"><div class="verhead"><b>'+label+'</b>'+badge+'<span class="verage">'+ago(v.ts)+'</span></div><div class="verchips">'+chips+'</div></div>'+use+'</div>';
-  }).join("");
-  box.querySelectorAll(".verrow").forEach(r=>r.onclick=e=>{if(e.target.closest(".veruse"))return;playVersion(r.dataset.audio,r);});
-  box.querySelectorAll(".veruse").forEach(bt=>bt.onclick=async e=>{e.stopPropagation();bt.textContent="…";await useVersion(name,bt.dataset.v);});}
-function playVersion(url,row){$("vid").pause();$("vid").style.display="none";$("wave").style.display="block";
-  $("nowart").style.display="flex";media=$("au");$("au").src=url;drawWave(url);$("au").play().catch(()=>{});
-  document.querySelectorAll(".verrow").forEach(x=>x.classList.remove("on"));row.classList.add("on");
-  const lbl=row.querySelector(".verhead b");$("nowsub").textContent=(lbl?"playing "+lbl.textContent+" · ":"")+"voice + duff";}
+  const cur=vs.find(v=>v.current)||vs[vs.length-1];applyKnobs(cur.knobs);
+  let orig=vs.find(v=>v.label==="original");let edits=vs.filter(v=>v!==orig).sort((a,b)=>a.v-b.v);
+  if(!orig){orig=edits.shift();}
+  const ok=(orig&&orig.knobs)||{};
+  const play='<button class="verplay" aria-label="play"><svg width="12" height="14" viewBox="0 0 14 16"><path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/></svg></button>';
+  let html='<div class="vgroup">The original</div>';
+  if(orig){const oc=!!orig.current;
+    html+='<div class="verrow orig'+(oc?" on is-current":"")+'" data-audio="'+encodeURI(orig.audio)+'" data-v="'+orig.v+'" data-label="the Original">'+play+
+      '<div class="verinfo"><div class="verhead"><b>Original</b>'+(oc?'<span class="curbadge">current mix</span>':'<span class="stpill2">starting point</span>')+'</div>'+
+      '<div class="verorigbody">The song as it started — untouched voice + duff.</div></div>'+
+      (oc?'':'<button class="veruse" data-v="'+orig.v+'">Revert to original</button>')+'</div>';}
+  html+='<div class="vgroup">My edits ('+edits.length+')'+(edits.length?'<span class="vg-help">tap ▶ to audition · Set as mix to keep</span>':'')+'</div>';
+  if(!edits.length){html+='<div class="emptyedits">No edits yet — tweak the sliders in Studio and press Re-render to make your first edit.</div>';}
+  else{edits.forEach((e,i)=>e._disp="Edit "+(i+1));
+    html+=edits.slice().reverse().map(e=>{const k=e.knobs||{},ic=!!e.current;
+      const chips=chipsHTML(k)+(e.closeness!=null?'<span class="vchip mt">Match <b>'+esc(e.closeness)+'%</b></span>':'');
+      const sum=(e.closeness!=null)?"Closer to the original":summarize(k,ok);
+      return '<div class="verrow edit'+(ic?" on is-current":"")+'" data-audio="'+encodeURI(e.audio)+'" data-v="'+e.v+'" data-label="'+esc(e._disp)+'">'+play+
+        '<div class="verinfo"><div class="verhead"><b>'+esc(e._disp)+'</b>'+(ic?'<span class="curbadge">current mix</span>':'')+'<span class="verage">'+ago(e.ts)+'</span></div>'+
+        '<div class="versum">'+esc(sum)+'</div>'+
+        (chips?'<span class="vertoggle">Show settings ▾</span><div class="versettings verchips hidden">'+chips+'</div>':'')+
+        '</div>'+(ic?'':'<button class="veruse" data-v="'+e.v+'">Set as mix</button>')+'</div>';
+    }).join("");}
+  box.innerHTML=html;
+  box.querySelectorAll(".verrow").forEach(r=>r.onclick=ev=>{if(ev.target.closest(".veruse")||ev.target.closest(".vertoggle"))return;
+    auditionVersion({audio:r.dataset.audio,v:r.dataset.v},r);});
+  box.querySelectorAll(".veruse").forEach(bt=>bt.onclick=async ev=>{ev.stopPropagation();bt.textContent="Setting…";await useVersion(name,bt.dataset.v);});
+  box.querySelectorAll(".vertoggle").forEach(tg=>tg.onclick=ev=>{ev.stopPropagation();const st=tg.nextElementSibling,open=!st.classList.contains("hidden");st.classList.toggle("hidden");tg.textContent=open?"Show settings ▾":"Hide settings ▴";});}
 async function useVersion(name,v){
   try{const r=await fetch("/api/versions/"+encodeURIComponent(name)+"/use",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({v:+v})});
-    const res=await r.json();if(res&&res.audio){await loadLibrary();playTrack(res);}}catch(e){}}
+    const res=await r.json();if(res&&res.audio){if(current)current.audio=res.audio;auditing=null;$("auditbar").classList.add("hidden");
+      media=$("au");$("au").src=res.audio;$("au").play().catch(()=>{});
+      if(current&&current.video&&stageMode==="video")$("vid").muted=true;else drawWave(res.audio);
+      await loadLibrary();await loadVersions(name);applyStage();updateSub();}}catch(e){}}
 $("play").onclick=()=>{if(!current)return;media.paused?media.play():media.pause();};
 ["au","vid"].forEach(id=>{$(id).addEventListener("play",()=>setPlayIcon(true));$(id).addEventListener("pause",()=>setPlayIcon(false));
-  $(id).addEventListener("ended",()=>{if($(id)===media)advance(1);});
+  $(id).addEventListener("ended",()=>{if($(id)===media&&!auditing)advance(1);});
   $(id).addEventListener("loadedmetadata",()=>{if($(id)!==media)return;$("tot").textContent=fmt(media.duration||0);$("cur").textContent="0:00";$("pfill").style.width="0";});
   $(id).addEventListener("timeupdate",()=>{if($(id)!==media)return;const d=media.duration||0,c=media.currentTime||0,pr=d?c/d:0;
     $("cur").textContent=fmt(c);$("tot").textContent=fmt(d);$("pfill").style.width=(pr*100)+"%";if(media===$("au"))paintWave(pr);});});
+$("au").addEventListener("play",()=>{if(current&&current.video&&stageMode==="video")$("vid").play().catch(()=>{});});
+$("au").addEventListener("pause",()=>{if(current&&current.video)$("vid").pause();});
+$("au").addEventListener("timeupdate",()=>{if(current&&current.video&&stageMode==="video"){const dv=$("vid"),da=$("au");
+  if(dv.readyState>0&&dv.duration&&Math.abs(dv.currentTime-da.currentTime)>0.4)dv.currentTime=Math.min(da.currentTime,dv.duration-0.05);}});
 $("pbar").onclick=e=>{if(!current||!media.duration)return;const r=$("pbar").getBoundingClientRect();media.currentTime=((e.clientX-r.left)/r.width)*media.duration;};
 function advance(dir){const q=(queue&&queue.length)?queue:items;if(!q.length)return;
   const i=q.findIndex(x=>current&&x.name===current.name);
@@ -464,6 +550,8 @@ $("convert").onclick=()=>startJob("/api/convert",{url:$("url").value,name:$("nam
 $("match").onclick=()=>startJob("/api/match",{name:current?current.name:""});
 $("rerender").onclick=()=>{const b={name:current?current.name:""};SLIDERS.forEach(s=>b[s[0]]=+$("s-"+s[0]).value);startJob("/api/rerender",b);};
 $("libsearch").oninput=applyFilter;
+document.querySelectorAll("#stagetoggle .stpill").forEach(b=>b.onclick=()=>setStageMode(b.dataset.mode));
+$("auditback").onclick=returnToMaster;
 async function loadConfig(){const c=await(await fetch("/api/config")).json();$("keystate").textContent=c.has_key?"✓ key is set — GPU ready":"no key yet — GPU stays off";$("keystate").className="keystate "+(c.has_key?"ok":"no");}
 $("gear").onclick=()=>{loadConfig();$("keyinput").value="";$("settings").style.display="flex";};
 $("keycancel").onclick=()=>$("settings").style.display="none";

@@ -382,7 +382,33 @@ def status(jid: str):
     j = JOBS.get(jid)
     return JSONResponse(j) if j else JSONResponse({"error": "unknown job"}, status_code=404)
 
+def _seed_originals():
+    """Guarantee every library track has a clearly-labeled 'Original' version so the version list always
+    starts from a baseline. Only touches songs that DON'T already have an original-labeled entry (idempotent —
+    it won't wipe real edit history once seeded). This also clears the confusing pre-feature test snapshots."""
+    for p in glob.glob(os.path.join(C.MASTERS, "*.m4a")):
+        name = os.path.splitext(os.path.basename(p))[0]
+        vdir = _vdir(name)
+        try:
+            vers = json.load(open(os.path.join(vdir, "versions.json")))
+            if any(v.get("label") == "original" for v in vers): continue    # already seeded — leave history alone
+        except Exception: pass
+        try:
+            if os.path.isdir(vdir): shutil.rmtree(vdir)
+            os.makedirs(vdir, exist_ok=True)
+            shutil.copyfile(p, os.path.join(vdir, "v1.m4a"))
+            knobs = {}
+            try: knobs = _knobs_of(json.load(open(os.path.join(C.WORK, engine._san(name), "params.json"))))
+            except Exception: pass
+            with open(os.path.join(vdir, "versions.json"), "w") as f:
+                json.dump([{"v": 1, "file": "v1.m4a", "knobs": knobs, "closeness": None,
+                            "ts": int(os.path.getmtime(p)), "label": "original"}], f, indent=2)
+            _set_current(vdir, 1)
+        except Exception:
+            traceback.print_exc()
+
 if __name__ == "__main__":
     print("Halal Duff Studio -> http://127.0.0.1:7860")
     _backfill_covers()
+    _seed_originals()
     uvicorn.run(app, host="127.0.0.1", port=7860, log_level="warning")
