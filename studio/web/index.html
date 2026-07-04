@@ -135,6 +135,15 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 .nowart{width:100%;max-width:340px;aspect-ratio:1;border-radius:16px;margin:0 auto 18px;display:none}
 .npstage #wave{height:90px;margin-top:4px}
 .np-left{cursor:pointer}
+.slider .hint{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.45}
+.guide{max-width:720px;padding:0 6px 44px}
+.guide h2{font-family:'Poppins',sans-serif;font-weight:600;font-size:17px;color:var(--ink);margin:26px 0 10px}
+.guide p{color:var(--mut);font-size:14px;line-height:1.7;margin:0 0 10px}
+.guide .k{color:var(--teal);font-weight:600}
+.guide ul{margin:0;padding:0;list-style:none}
+.guide li{color:var(--mut);font-size:14px;line-height:1.55;padding:10px 0;border-top:1px solid var(--line)}
+.guide li:first-child{border-top:none}
+.guide li b{color:var(--ink);font-weight:600}
 .verwrap{max-width:640px;margin:22px auto 0}
 .verwrap .vhead{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 10px 2px}
 .verrow{display:flex;align-items:center;gap:12px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card);transition:border-color .15s}
@@ -166,6 +175,7 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
       <a class="on" data-view="studio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Studio</a>
       <a data-view="now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z" fill="currentColor" stroke="none"/></svg>Now Playing</a>
       <a data-view="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="18" cy="18" r="3"/></svg>Library</a>
+      <a data-view="guide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5" stroke-linecap="round"/><path d="M12 8h.01" stroke-linecap="round"/></svg>Guide</a>
     </div>
     <div class="plsec">
       <div class="plhead"><span>Playlists</span><span class="plnew" id="plnew">+ new</span></div>
@@ -218,6 +228,49 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
       <div class="libtop"><div class="sub" id="libcount"></div><input type="text" id="libsearch" placeholder="Filter songs…"/></div>
       <div class="libgrid" id="libgrid"></div>
     </div>
+
+    <div id="view-guide" class="hidden">
+      <div class="h1">Guide</div>
+      <div class="sub">What everything does — and how to shape a track.</div>
+      <div class="guide">
+        <h2>How it works</h2>
+        <p>Paste a song link and press <span class="k">Convert</span>. The app isolates the original
+        <b>vocal</b>, then rebuilds the low end with a <b>real frame drum (duff)</b> — no melodic
+        instruments, ever. You get a clean voice-and-duff version in your Library.</p>
+
+        <h2>The tune sliders</h2>
+        <p>Play a track, tweak these in <span class="k">Studio</span>, then press <span class="k">Re-render</span>
+        (a few seconds — it reuses the stems). Each re-render is saved as a version.</p>
+        <ul>
+          <li><b>Heaviness</b> — how deep and heavy the duff's low end sits under the voice, the "water beat" thump. Turn up for a heavier, more physical beat.</li>
+          <li><b>Duff level</b> — overall loudness of the frame drum against the vocal.</li>
+          <li><b>Sub depth</b> — how low the sub reaches. Lower = deeper and rounder, higher = tighter and punchier.</li>
+          <li><b>Beat swell</b> — how much the beat rises up in the song's heavier sections vs staying flat throughout.</li>
+          <li><b>Brightness</b> — air and sparkle up top. Below 0 darkens the master, above 0 opens it up.</li>
+          <li><b>Vocal duck</b> — how much the drum ducks out of the way of the voice. Higher keeps the vocal clear and forward.</li>
+        </ul>
+
+        <h2>Re-render vs Match closer</h2>
+        <ul>
+          <li><b>Re-render</b> applies your slider settings and remakes the mix.</li>
+          <li><b>Match closer to the original</b> searches the groove + balance to get the beat as close to the original's feel as the duff honestly can, then reports a beat-match breakdown (placement / feel / tone). It won't fake a gain it can't get.</li>
+        </ul>
+
+        <h2>Versions</h2>
+        <p>Every render is snapshotted. Open a track in <span class="k">Now Playing</span> and use the
+        <b>Versions</b> list to A/B compare tunings by ear — each shows its heaviness/duff settings so you can
+        pick your favorite.</p>
+
+        <h2>Local vs RunPod GPU</h2>
+        <p>By default everything runs on this Mac (free, ~10–15 min a song). Add a RunPod key in
+        <span class="k">Settings</span> and tick <b>RunPod GPU</b> for ~2 min a song. A fresh GPU pod is spun
+        up per song and always torn down after — you're only billed for those minutes.</p>
+
+        <h2>Why voice + duff only</h2>
+        <p>The frame drum carries rhythm; the melody stays in the voice. No melodic instrument is ever
+        synthesized or reintroduced — that boundary is built into the engine, by design.</p>
+      </div>
+    </div>
   </div>
 
   <div class="nowbar">
@@ -249,9 +302,13 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 <audio id="au"></audio>
 <script>
 const $=id=>document.getElementById(id);
-const SLIDERS=[["heaviness","Heaviness",0.4,6,0.05,0.85,0],["duff_level","Duff level",0.6,1.4,0.02,1,0],
-  ["sub_depth","Sub depth",60,140,1,95,0],["beat_swell","Beat swell",0.5,2.4,0.1,1.5,0],
-  ["brightness","Brightness",-4,6,0.5,0,0],["vocal_duck","Vocal duck",0,0.8,0.05,0.55,1]];
+const SLIDERS=[
+  ["heaviness","Heaviness",0.4,6,0.05,0.85,0,"How deep and heavy the duff's low end sits under the voice — the 'water beat' thump."],
+  ["duff_level","Duff level",0.6,1.4,0.02,1,0,"Overall loudness of the frame drum against the vocal."],
+  ["sub_depth","Sub depth",60,140,1,95,0,"How low the sub reaches. Lower = deeper & rounder, higher = tighter."],
+  ["beat_swell","Beat swell",0.5,2.4,0.1,1.5,0,"How much the beat swells up in the song's heavier sections."],
+  ["brightness","Brightness",-4,6,0.5,0,0,"Air & sparkle up top. Below 0 darkens it, above 0 opens it up."],
+  ["vocal_duck","Vocal duck",0,0.8,0.05,0.55,1,"How much the drum steps out of the way of the voice. Higher = clearer vocal."]];
 const PMAP={heaviness:"sub_vs_lead",duff_level:"duff_level",sub_depth:"sub_lp",beat_swell:"sub_follow",brightness:"bright_db",vocal_duck:"duck"};
 let items=[], current=null, media=$("au"), peaks=null, playlists={}, curPl=null, baseList=[], queue=[], busy=false;
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -265,12 +322,13 @@ function setArt(el,it,px){el.style.background=it.cover?"#0a1326 url('"+encodeURI
 function setBusy(b){busy=b;["convert","rerender","match"].forEach(id=>{const el=$(id);el.disabled=b;el.style.opacity=b?".5":"";el.style.pointerEvents=b?"none":"";});}
 function buildSliders(){$("sliders").innerHTML=SLIDERS.map(s=>`<div class="slider ${s[6]?'cyan':''}">
   <div class="top"><span class="lbl">${s[1]}</span><span class="val" id="v-${s[0]}">${s[5]}</span></div>
-  <input type="range" id="s-${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[4]}" value="${s[5]}"/></div>`).join("");
+  <input type="range" id="s-${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[4]}" value="${s[5]}"/>
+  <div class="hint">${s[7]||''}</div></div>`).join("");
   SLIDERS.forEach(s=>$("s-"+s[0]).oninput=e=>$("v-"+s[0]).textContent=(+e.target.value).toString());}
 
 function switchView(v){document.querySelectorAll(".nav a").forEach(x=>x.classList.toggle("on",x.dataset.view===v));
   curPl=null;document.querySelectorAll("#pllist a").forEach(a=>a.classList.remove("on"));
-  ["studio","now","library"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
+  ["studio","now","library","guide"].forEach(k=>$("view-"+k).classList.toggle("hidden",k!==v));
   if(v==="library")loadLibrary();if(v==="now")setTimeout(()=>paintWave(media&&media.duration?media.currentTime/media.duration:0),30);}
 document.querySelectorAll(".nav a").forEach(a=>a.onclick=()=>switchView(a.dataset.view));
 
