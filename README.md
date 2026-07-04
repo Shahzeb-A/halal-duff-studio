@@ -164,6 +164,33 @@ Everything melodic in the original is discarded — only the **vocal stem** and 
 
 ---
 
+## 🖥️ Use it like an app (desktop icon)
+
+Once it's set up you never need the terminal again — launch it from a desktop icon.
+
+**macOS** — double-click **`Halal Duff Studio.app`**. It starts the local server (if it isn't already
+running) and opens the app. To keep it handy, drag it into your Applications folder, or drop a clickable
+alias on your Desktop:
+
+```bash
+# from the project folder — puts a "Halal Duff Studio" icon on your Desktop
+ln -sf "$PWD/Halal Duff Studio.app" ~/Desktop/
+```
+
+First launch of an unsigned app: right-click it → **Open** once to clear Gatekeeper (after that a normal
+double-click works).
+
+**Windows** — double-click **`Halal Duff Studio.bat`**. For a real desktop icon, run
+**`Create Desktop Shortcut.bat`** once — it drops a **Halal Duff Studio** shortcut on your Desktop (with the
+app icon) that launches everything on click.
+
+> Both launchers start the local server automatically and open http://127.0.0.1:7860. A single bundled
+> `.exe` / notarized `.app` isn't shipped because the app pulls in large ML models + ffmpeg — the launchers
+> above give the same one-click experience without a multi-GB download. *(Advanced: you can build a
+> standalone binary with [PyInstaller](https://pyinstaller.org) if you really want one.)*
+
+---
+
 ## ⚡ Optional: the fast lane (RunPod GPU)
 
 Separation is the heavy step. On an 8 GB Mac it runs on CPU (~10–15 min a song, but free). To make it ~2 min:
