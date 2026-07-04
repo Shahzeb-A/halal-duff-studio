@@ -284,8 +284,54 @@ async def playlists_edit(req: Request):
         elif act == "delete" and name: d.pop(name, None)
         elif act == "add" and name in d and track and track not in d[name]: d[name].append(track)
         elif act == "remove" and name in d and track: d[name] = [t for t in d[name] if t != track]
+        elif act == "rename" and name in d:
+            new = (b.get("new") or "").strip()[:80]
+            if new and new not in d: d[new] = d.pop(name)
         _save_pl(d)
     return JSONResponse(d)
+
+@app.post("/api/track/rename")
+async def track_rename(req: Request):
+    b = await req.json()
+    old = engine._san(b.get("name") or ""); new = engine._san(b.get("new") or "")
+    if not old or not new: return JSONResponse({"error": "name required"}, status_code=400)
+    if new == old: return JSONResponse({"ok": True, "name": new})
+    if os.path.exists(os.path.join(C.MASTERS, new + ".m4a")):
+        return JSONResponse({"error": f"a track named “{new}” already exists"}, status_code=400)
+    moved = False
+    for ext in (".m4a", ".mp4", ".jpg"):                                  # master, video, cover
+        src = os.path.join(C.MASTERS, old + ext); dst = os.path.join(C.MASTERS, new + ext)
+        if os.path.exists(src):
+            os.replace(src, dst); moved = moved or ext == ".m4a"
+    if not moved: return JSONResponse({"error": "track not found"}, status_code=404)
+    for base in (os.path.join(C.MASTERS, "versions"), C.WORK):            # move version history + cached stems
+        s = os.path.join(base, old); dd = os.path.join(base, new)
+        if os.path.isdir(s) and not os.path.exists(dd):
+            try: os.replace(s, dd)
+            except Exception: pass
+    with _PL_LOCK:                                                        # repoint playlist references
+        d = _load_pl()
+        for k in d: d[k] = [new if t == old else t for t in d[k]]
+        _save_pl(d)
+    if STATE.get("name") and engine._san(STATE["name"]) == old: STATE["name"] = new
+    return JSONResponse({"ok": True, "name": new})
+
+@app.post("/api/track/delete")
+async def track_delete(req: Request):
+    b = await req.json(); clean = engine._san(b.get("name") or "")
+    if not clean: return JSONResponse({"error": "name required"}, status_code=400)
+    for ext in (".m4a", ".mp4", ".jpg"):
+        f = os.path.join(C.MASTERS, clean + ext)
+        if os.path.exists(f):
+            try: os.remove(f)
+            except Exception: pass
+    vd = os.path.join(C.MASTERS, "versions", clean)
+    if os.path.isdir(vd): shutil.rmtree(vd, ignore_errors=True)
+    with _PL_LOCK:                                                        # drop from every playlist
+        d = _load_pl()
+        for k in list(d): d[k] = [t for t in d[k] if t != clean]
+        _save_pl(d)
+    return JSONResponse({"ok": True})
 
 @app.get("/api/config")
 def get_config():
