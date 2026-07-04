@@ -2,7 +2,7 @@
 Same pipeline underneath (engine.convert / render / deep_match); this just gives full design control.
 Run:  cd studio && ../.venv/bin/python server.py   ->  http://127.0.0.1:7860
 """
-import os, sys, uuid, threading, subprocess, glob, traceback, json
+import os, sys, uuid, threading, subprocess, glob, traceback, json, shutil, time
 from urllib.parse import quote, unquote, urlparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import engine, config as C
@@ -62,25 +62,93 @@ def _dur(path):
         _DUR[path] = ""
     return _DUR[path]
 
+def _v(path):
+    """Cache-bust query from the file's mtime — a re-render gives the SAME filename a new URL, so the
+    browser refetches instead of replaying the stale cached audio (the 'sounds the same after re-render'
+    bug). Old versioned URLs stay cached (harmless), so seeking within a version is still instant."""
+    try: return f"?v={int(os.path.getmtime(path))}"
+    except Exception: return ""
+
 def _library():
     items = []
     for p in sorted(glob.glob(os.path.join(C.MASTERS, "*.m4a")), key=str.lower):
         name = os.path.splitext(os.path.basename(p))[0]
         mp4 = os.path.join(C.MASTERS, name + ".mp4"); jpg = os.path.join(C.MASTERS, name + ".jpg")
-        items.append({"name": name, "audio": "/media/" + quote(name + ".m4a"),
-                      "video": ("/media/" + quote(name + ".mp4")) if os.path.exists(mp4) else None,
-                      "cover": ("/cover/" + quote(name + ".jpg")) if os.path.exists(jpg) else None,
+        items.append({"name": name, "audio": "/media/" + quote(name + ".m4a") + _v(p),
+                      "video": ("/media/" + quote(name + ".mp4") + _v(mp4)) if os.path.exists(mp4) else None,
+                      "cover": ("/cover/" + quote(name + ".jpg") + _v(jpg)) if os.path.exists(jpg) else None,
                       "dur": _dur(p)})
     return items
 
 def _payload(name, match, params):
     n = engine._san(name)
     mp4 = os.path.join(C.MASTERS, n + ".mp4"); jpg = os.path.join(C.MASTERS, n + ".jpg"); m4a = os.path.join(C.MASTERS, n + ".m4a")
-    return {"name": n, "audio": "/media/" + quote(n + ".m4a"),
-            "video": ("/media/" + quote(n + ".mp4")) if os.path.exists(mp4) else None,
-            "cover": ("/cover/" + quote(n + ".jpg")) if os.path.exists(jpg) else None,
+    return {"name": n, "audio": "/media/" + quote(n + ".m4a") + _v(m4a),
+            "video": ("/media/" + quote(n + ".mp4") + _v(mp4)) if os.path.exists(mp4) else None,
+            "cover": ("/cover/" + quote(n + ".jpg") + _v(jpg)) if os.path.exists(jpg) else None,
             "dur": _dur(m4a) if os.path.exists(m4a) else "",
             "match": match or {}, "params": params or {}}
+
+_KNOBS = ("sub_vs_lead", "duff_level", "sub_lp", "sub_follow", "duck", "bright_db", "width", "reverb")
+
+def _save_params(name, params):
+    """Persist the tuning knobs next to the stems so a later re-tune (even after a restart) recalls them."""
+    try:
+        work = os.path.join(C.WORK, engine._san(name))
+        if os.path.isdir(work):
+            with open(os.path.join(work, "params.json"), "w") as f:
+                json.dump({k: params[k] for k in _KNOBS if k in params}, f)
+    except Exception: pass
+
+def _ensure_working(name):
+    """Point STATE at `name`, reloading its cached stems from work/ if it isn't already the working song.
+    This is what lets you re-tune ANY track you pick from the library, not just the last one converted.
+    Raises a clear error (surfaced to the UI) when the original stems aren't on disk anymore."""
+    name = (name or STATE.get("name") or "").strip()
+    if not name:
+        raise RuntimeError("play or convert a song first, then re-tune it")
+    if STATE.get("name") == name and STATE.get("stems"):
+        return
+    clean = engine._san(name)
+    work = os.path.join(C.WORK, clean)
+    drums = os.path.join(work, "drums.wav"); vocals = os.path.join(work, "vocals.wav"); groove = os.path.join(work, "groove.wav")
+    if not (os.path.exists(drums) and os.path.exists(vocals) and os.path.exists(groove)):
+        raise RuntimeError("the original stems for this track aren't on disk anymore — reconvert it to re-tune")
+    vwork = os.path.join(work, "video.mp4")
+    stems = dict(work=work, source=os.path.join(work, "source.wav"), drums=drums, vocals=vocals,
+                 other=None, video=(vwork if os.path.exists(vwork) else None))
+    params = engine._dyn_paths(stems, groove, False)          # correct absolute paths for THIS machine
+    try:                                                      # merge the last-saved knobs back on top
+        params.update(json.load(open(os.path.join(work, "params.json"))))
+    except Exception: pass
+    STATE.update(stems=stems, groove=groove, params=params, name=name, closeness=None, match=None)
+
+def _save_version(name):
+    """Snapshot the just-rendered master as a numbered version so tunings can be A/B compared later.
+    Kept under Masters/versions/<song>/ (git-ignored with the rest of Masters). Capped at 12."""
+    try:
+        clean = engine._san(name)
+        src = os.path.join(C.MASTERS, clean + ".m4a")
+        if not os.path.exists(src): return
+        vdir = os.path.join(C.MASTERS, "versions", clean); os.makedirs(vdir, exist_ok=True)
+        idx = os.path.join(vdir, "versions.json")
+        try: vers = json.load(open(idx))
+        except Exception: vers = []
+        n = (vers[-1]["v"] + 1) if vers else 1
+        shutil.copyfile(src, os.path.join(vdir, f"v{n}.m4a"))
+        p = STATE.get("params") or {}
+        knobs = {k: round(float(p[k]), 2) for k in ("sub_vs_lead", "duff_level", "sub_lp", "sub_follow", "duck", "bright_db") if p.get(k) is not None}
+        vers.append({"v": n, "file": f"v{n}.m4a", "knobs": knobs,
+                     "closeness": (STATE.get("match") or {}).get("closeness"), "ts": int(time.time())})
+        vers = vers[-12:]                                     # cap history + prune the dropped audio files
+        keep = {v["file"] for v in vers}
+        for f in glob.glob(os.path.join(vdir, "v*.m4a")):
+            if os.path.basename(f) not in keep:
+                try: os.remove(f)
+                except Exception: pass
+        with open(idx, "w") as f: json.dump(vers, f, indent=2)
+    except Exception:
+        traceback.print_exc()
 
 def _job(fn):
     # SINGLE-FLIGHT: this app has ONE global STATE (the last convert's stems/params). Refuse to start a
@@ -129,6 +197,25 @@ def media(fname: str): return _serve(fname)
 
 @app.get("/cover/{fname}")
 def cover(fname: str): return _serve(fname)
+
+@app.get("/api/versions/{name}")
+def versions(name: str):
+    clean = engine._san(unquote(name))
+    vdir = os.path.join(C.MASTERS, "versions", clean)
+    try: vers = json.load(open(os.path.join(vdir, "versions.json")))
+    except Exception: vers = []
+    for v in vers:
+        v["audio"] = "/version/" + quote(clean) + "/" + quote(v["file"]) + _v(os.path.join(vdir, v["file"]))
+    return JSONResponse(vers)
+
+@app.get("/version/{name}/{fname}")
+def version_media(name: str, fname: str):
+    clean = engine._san(unquote(name)); base = os.path.basename(unquote(fname))
+    if os.path.splitext(base)[1].lower() != ".m4a":
+        return JSONResponse({"error": "not found"}, status_code=404)
+    path = os.path.join(C.MASTERS, "versions", clean, base)
+    if not os.path.exists(path): return JSONResponse({"error": "not found"}, status_code=404)
+    return FileResponse(path)
 
 PL = os.path.join(C.MASTERS, "playlists.json")
 def _load_pl():
@@ -209,14 +296,15 @@ async def convert(req: Request):
         r = engine.convert(url, nm, want_pad=False, tune=tune, progress=cb, sep_mode=("runpod" if gpu else "local"))
         STATE.update(stems=r["stems"], groove=r["groove"], params=r["params"], name=nm,
                      closeness=r.get("closeness"), match=r.get("match"))
+        _save_params(nm, r["params"]); _save_version(nm)     # v1 of this song's history
         return _payload(nm, r.get("match"), r["params"])
     return _job(fn)
 
 @app.post("/api/rerender")
 async def rerender(req: Request):
     b = await req.json()
-    if not STATE.get("stems"): return JSONResponse({"error": "convert a song first"}, status_code=400)
     def fn(cb):
+        _ensure_working(b.get("name"))                       # re-tune the track you picked; clear error if stems gone
         p = dict(STATE["params"])
         p.update(sub_vs_lead=float(b.get("heaviness", p.get("sub_vs_lead", 0.85))),
                  sub_lp=float(b.get("sub_depth", p.get("sub_lp", 95))),
@@ -226,17 +314,20 @@ async def rerender(req: Request):
                  bright_db=float(b.get("brightness", 0.0)), pad_off=1)
         engine.render(STATE["stems"], STATE["groove"], p, STATE["name"], progress=cb)
         STATE["params"] = p
+        _save_params(STATE["name"], p); _save_version(STATE["name"])
         return _payload(STATE["name"], STATE.get("match"), p)
     return _job(fn)
 
 @app.post("/api/match")
 async def match(req: Request):
-    if not STATE.get("stems"): return JSONResponse({"error": "convert a song first"}, status_code=400)
+    b = await req.json()
     def fn(cb):
+        _ensure_working(b.get("name"))
         r = engine.deep_match(STATE["stems"], progress=cb)
         STATE.update(groove=r["groove"], params=r["params"], closeness=r["closeness"], match=r.get("detail"))
         cb(0.9, "rendering the closer version…")
         engine.render(STATE["stems"], r["groove"], r["params"], STATE["name"], progress=cb)
+        _save_params(STATE["name"], r["params"]); _save_version(STATE["name"])
         return _payload(STATE["name"], r.get("detail"), r["params"])
     return _job(fn)
 
