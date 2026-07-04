@@ -15,7 +15,8 @@ if ! lsof -tiTCP:7860 -sTCP:LISTEN >/dev/null 2>&1; then
   for i in $(seq 1 40); do curl -sf http://127.0.0.1:7860/api/config >/dev/null 2>&1 && break; sleep 0.5; done
 fi
 if curl -sf http://127.0.0.1:7860/api/config >/dev/null 2>&1; then
-  open "http://127.0.0.1:7860"
+  # cache-bust the URL so a stale already-open tab reloads with the latest app (no manual refresh)
+  open "http://127.0.0.1:7860/?t=$(date +%s)"
 else
   echo "The server didn't start — see /tmp/duffstudio.log"; open /tmp/duffstudio.log
 fi
