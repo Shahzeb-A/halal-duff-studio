@@ -123,30 +123,61 @@ def _ensure_working(name):
     except Exception: pass
     STATE.update(stems=stems, groove=groove, params=params, name=name, closeness=None, match=None)
 
-def _save_version(name):
+def _vdir(name): return os.path.join(C.MASTERS, "versions", engine._san(name))
+def _set_current(vdir, v):
+    try: open(os.path.join(vdir, "current"), "w").write(str(v))
+    except Exception: pass
+def _get_current(vdir, vers):
+    try: return int(open(os.path.join(vdir, "current")).read().strip())
+    except Exception: return max((v["v"] for v in vers), default=0)   # newest render is the master by default
+
+def _knobs_of(params):
+    return {k: round(float(params[k]), 2) for k in ("sub_vs_lead", "duff_level", "sub_lp", "sub_follow", "duck", "bright_db") if params.get(k) is not None}
+
+def _snapshot_original(name):
+    """Before the FIRST re-tune of a track that predates version history, preserve its current master
+    as v1 'Original' so the user can always A/B back to what they started with. No-op if history exists."""
+    try:
+        vdir = _vdir(name)
+        if os.path.exists(os.path.join(vdir, "versions.json")): return
+        src = os.path.join(C.MASTERS, engine._san(name) + ".m4a")
+        if not os.path.exists(src): return
+        os.makedirs(vdir, exist_ok=True)
+        shutil.copyfile(src, os.path.join(vdir, "v1.m4a"))
+        knobs = {}
+        try: knobs = _knobs_of(json.load(open(os.path.join(C.WORK, engine._san(name), "params.json"))))
+        except Exception: pass
+        with open(os.path.join(vdir, "versions.json"), "w") as f:
+            json.dump([{"v": 1, "file": "v1.m4a", "knobs": knobs, "closeness": None,
+                        "ts": int(os.path.getmtime(src)), "label": "original"}], f, indent=2)
+    except Exception:
+        traceback.print_exc()
+
+def _save_version(name, label=None):
     """Snapshot the just-rendered master as a numbered version so tunings can be A/B compared later.
-    Kept under Masters/versions/<song>/ (git-ignored with the rest of Masters). Capped at 12."""
+    Kept under Masters/versions/<song>/ (git-ignored). Original + last 15 renders are retained."""
     try:
         clean = engine._san(name)
         src = os.path.join(C.MASTERS, clean + ".m4a")
         if not os.path.exists(src): return
-        vdir = os.path.join(C.MASTERS, "versions", clean); os.makedirs(vdir, exist_ok=True)
+        vdir = _vdir(name); os.makedirs(vdir, exist_ok=True)
         idx = os.path.join(vdir, "versions.json")
         try: vers = json.load(open(idx))
         except Exception: vers = []
-        n = (vers[-1]["v"] + 1) if vers else 1
+        n = max((v["v"] for v in vers), default=0) + 1
         shutil.copyfile(src, os.path.join(vdir, f"v{n}.m4a"))
-        p = STATE.get("params") or {}
-        knobs = {k: round(float(p[k]), 2) for k in ("sub_vs_lead", "duff_level", "sub_lp", "sub_follow", "duck", "bright_db") if p.get(k) is not None}
-        vers.append({"v": n, "file": f"v{n}.m4a", "knobs": knobs,
-                     "closeness": (STATE.get("match") or {}).get("closeness"), "ts": int(time.time())})
-        vers = vers[-12:]                                     # cap history + prune the dropped audio files
+        vers.append({"v": n, "file": f"v{n}.m4a", "knobs": _knobs_of(STATE.get("params") or {}),
+                     "closeness": (STATE.get("match") or {}).get("closeness"), "ts": int(time.time()), "label": label})
+        origs = [v for v in vers if v.get("label") == "original"][:1]      # never prune the original
+        rest = [v for v in vers if v.get("label") != "original"][-15:]
+        vers = origs + rest
         keep = {v["file"] for v in vers}
         for f in glob.glob(os.path.join(vdir, "v*.m4a")):
             if os.path.basename(f) not in keep:
                 try: os.remove(f)
                 except Exception: pass
         with open(idx, "w") as f: json.dump(vers, f, indent=2)
+        _set_current(vdir, n)                                              # the render you just made is now current
     except Exception:
         traceback.print_exc()
 
@@ -204,9 +235,22 @@ def versions(name: str):
     vdir = os.path.join(C.MASTERS, "versions", clean)
     try: vers = json.load(open(os.path.join(vdir, "versions.json")))
     except Exception: vers = []
+    cur = _get_current(vdir, vers)
     for v in vers:
         v["audio"] = "/version/" + quote(clean) + "/" + quote(v["file"]) + _v(os.path.join(vdir, v["file"]))
+        v["current"] = (v["v"] == cur)
     return JSONResponse(vers)
+
+@app.post("/api/versions/{name}/use")
+async def use_version(name: str, req: Request):
+    """Make an older version the current master (so it plays everywhere + shows in the library)."""
+    b = await req.json(); v = int(b.get("v", 0))
+    clean = engine._san(unquote(name)); vdir = os.path.join(C.MASTERS, "versions", clean)
+    src = os.path.join(vdir, f"v{v}.m4a")
+    if not os.path.exists(src): return JSONResponse({"error": "version not found"}, status_code=404)
+    shutil.copyfile(src, os.path.join(C.MASTERS, clean + ".m4a"))
+    _set_current(vdir, v)
+    return JSONResponse(_payload(clean, {}, {}))
 
 @app.get("/version/{name}/{fname}")
 def version_media(name: str, fname: str):
@@ -296,7 +340,7 @@ async def convert(req: Request):
         r = engine.convert(url, nm, want_pad=False, tune=tune, progress=cb, sep_mode=("runpod" if gpu else "local"))
         STATE.update(stems=r["stems"], groove=r["groove"], params=r["params"], name=nm,
                      closeness=r.get("closeness"), match=r.get("match"))
-        _save_params(nm, r["params"]); _save_version(nm)     # v1 of this song's history
+        _save_params(nm, r["params"]); _save_version(nm, label="original")   # v1 = the original convert
         return _payload(nm, r.get("match"), r["params"])
     return _job(fn)
 
@@ -305,6 +349,7 @@ async def rerender(req: Request):
     b = await req.json()
     def fn(cb):
         _ensure_working(b.get("name"))                       # re-tune the track you picked; clear error if stems gone
+        _snapshot_original(STATE["name"])                    # preserve the pre-tune master as v1 'Original'
         p = dict(STATE["params"])
         p.update(sub_vs_lead=float(b.get("heaviness", p.get("sub_vs_lead", 0.85))),
                  sub_lp=float(b.get("sub_depth", p.get("sub_lp", 95))),
@@ -323,6 +368,7 @@ async def match(req: Request):
     b = await req.json()
     def fn(cb):
         _ensure_working(b.get("name"))
+        _snapshot_original(STATE["name"])                    # preserve the pre-match master as v1 'Original'
         r = engine.deep_match(STATE["stems"], progress=cb)
         STATE.update(groove=r["groove"], params=r["params"], closeness=r["closeness"], match=r.get("detail"))
         cb(0.9, "rendering the closer version…")

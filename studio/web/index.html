@@ -130,10 +130,14 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 .modalcard input{width:100%;background:#0b1a33;border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:12px 14px;font-family:'Space Mono',monospace;font-size:13px}
 .modalcard input:focus{outline:none;border-color:var(--teal)}
 .mbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.mbtns .btn2,.mbtns .cta{flex:none;padding:11px 20px}
-.npstage{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center}
-.npstage #vid{max-height:440px;margin:0 auto}
-.nowart{width:100%;max-width:340px;aspect-ratio:1;border-radius:16px;margin:0 auto 18px;display:none}
-.npstage #wave{height:90px;margin-top:4px}
+.npeyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:500;margin:14px 6px 16px}
+.npstage{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;text-align:center}
+.npstage #vid{max-height:460px;max-width:100%;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.42);margin:0 auto}
+.nowart{width:100%;max-width:300px;aspect-ratio:1;border-radius:16px;margin:0 auto;display:none;box-shadow:0 12px 36px rgba(0,0,0,.42)}
+.npstage #wave{height:96px;margin-top:12px}
+.nowmeta{max-width:680px;margin:16px auto 0;text-align:center}
+.nowmeta .nptt{font-family:'Poppins',sans-serif;font-weight:600;font-size:20px;color:var(--ink);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nowmeta .npsb{font-size:13px;color:var(--mut);margin-top:3px}
 .np-left{cursor:pointer}
 .slider .hint{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.45}
 .guide{max-width:720px;padding:0 6px 44px}
@@ -144,16 +148,26 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
 .guide li{color:var(--mut);font-size:14px;line-height:1.55;padding:10px 0;border-top:1px solid var(--line)}
 .guide li:first-child{border-top:none}
 .guide li b{color:var(--ink);font-weight:600}
-.verwrap{max-width:640px;margin:22px auto 0}
-.verwrap .vhead{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 10px 2px}
-.verrow{display:flex;align-items:center;gap:12px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card);transition:border-color .15s}
-.verrow:hover{border-color:var(--line2)}
-.verrow.on{border-color:var(--teal);background:var(--panel2)}
-.verplay{width:32px;height:32px;flex:none;border-radius:50%;border:none;background:var(--grad);color:#06121f;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.verwrap{max-width:680px;margin:26px auto 0}
+.verwrap .vhead{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 12px 2px}
+.verrow{display:flex;align-items:center;gap:14px;padding:13px 15px;border:1px solid var(--line);border-radius:13px;margin-bottom:9px;cursor:pointer;background:var(--card);transition:all .15s}
+.verrow:hover{border-color:var(--line2);background:var(--panel2)}
+.verrow.on{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal) inset}
+.verrow.is-current{background:linear-gradient(90deg,rgba(53,219,194,.07),transparent)}
+.verplay{width:38px;height:38px;flex:none;border-radius:50%;border:none;background:var(--grad);color:#06121f;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s}
+.verplay:hover{transform:scale(1.06)}
 .verrow.on .verplay{background:var(--teal)}
-.vermeta{min-width:0;font-size:13px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vermeta b{color:var(--ink);font-weight:600;margin-right:9px}
-.vermeta .cur{color:var(--teal);font-size:10.5px;letter-spacing:.05em;margin-left:9px;text-transform:uppercase}
+.verinfo{flex:1;min-width:0}
+.verhead{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);margin-bottom:7px}
+.verhead b{font-family:'Poppins',sans-serif;font-weight:600}
+.curbadge{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#06121f;background:var(--teal);padding:2px 7px;border-radius:20px;font-weight:600}
+.verage{color:var(--dim);font-size:11.5px;margin-left:auto}
+.verchips{display:flex;flex-wrap:wrap;gap:6px}
+.vchip{font-size:11px;color:var(--mut);background:#0b1a33;border:1px solid var(--line);border-radius:7px;padding:3px 8px}
+.vchip b{color:var(--ink);font-weight:600;margin-left:3px}
+.vchip.mt,.vchip.mt b{color:var(--teal)}
+.veruse{flex:none;background:transparent;border:1px solid var(--line2);color:var(--mut);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.veruse:hover{border-color:var(--teal);color:var(--teal)}
 .hidden{display:none!important}
 </style>
 </head>
@@ -183,7 +197,7 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
     </div>
     <div class="side-foot">
       <div class="setrow" id="gear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2l-.3-2.5H8.7l-.3 2.5a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 004.9 12a7 7 0 00.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 002 1.2l.3 2.5h4.6l.3-2.5a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5A7 7 0 0019 12z"/></svg>Settings · GPU key</div>
-      <div class="tag">a <b>DevelMo</b> instrument · voice + duff only</div>
+      <div class="tag">Built by <b>DevelMo</b> · voice + duff only</div>
     </div>
   </div>
 
@@ -213,13 +227,13 @@ input[type=text]:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3p
     </div>
 
     <div id="view-now" class="hidden">
-      <div class="h1">Now Playing</div>
-      <div class="sub" id="nowsub">Nothing playing yet — convert a song or pick one from your library.</div>
+      <div class="npeyebrow">Now Playing</div>
       <div class="npstage">
         <video id="vid" controls></video>
         <div class="nowart" id="nowart"></div>
         <canvas id="wave"></canvas>
       </div>
+      <div class="nowmeta"><div class="nptt" id="nptt">Nothing playing yet</div><div class="npsb" id="nowsub">pick a song from your library or convert one</div></div>
       <div id="versions" class="verwrap"></div>
     </div>
 
@@ -350,26 +364,36 @@ function playTrack(it){current=it;
   $("dl").href=it.video||it.audio; $("dl").setAttribute("download",it.name+(it.video?".mp4":".m4a"));
   const vidStage=!!it.video;
   $("vid").style.display=vidStage?"block":"none"; $("wave").style.display=vidStage?"none":"block";
-  $("nowsub").textContent=it.name+(it.video?" · music video":" · audio");const nowart=$("nowart");
+  $("nptt").textContent=it.name; $("nowsub").textContent=it.video?"music video · voice + duff":"voice + duff";const nowart=$("nowart");
   if(vidStage){media=$("vid");$("au").pause();$("vid").src=it.video;nowart.style.display="none";}
   else{media=$("au");$("vid").pause();$("au").src=it.audio;drawWave(it.audio);nowart.style.display="flex";setArt(nowart,it,120);}
   media.play().catch(()=>{});loadVersions(it.name);}
+const KNAME={sub_vs_lead:"Heaviness",duff_level:"Duff",sub_lp:"Sub depth",sub_follow:"Swell",duck:"Duck",bright_db:"Bright"};
+function ago(ts){if(!ts)return"";const s=Math.max(0,Math.floor(Date.now()/1000-ts));
+  if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";}
 function applyKnobs(k){SLIDERS.forEach(s=>{const pk=PMAP[s[0]];if(k&&k[pk]!=null){const v=Math.round(k[pk]*100)/100;$("s-"+s[0]).value=v;$("v-"+s[0]).textContent=v.toString();}});}
 async function loadVersions(name){const box=$("versions");if(!box)return;
   let vs=[];try{vs=await(await fetch("/api/versions/"+encodeURIComponent(name))).json();}catch(e){}
   if(!Array.isArray(vs)||!vs.length){box.innerHTML="";return;}
-  applyKnobs(vs[vs.length-1].knobs);        // start the tune sliders from this track's current settings
-  box.innerHTML='<div class="vhead">Versions · tap to A/B compare</div>'+vs.slice().reverse().map((v,i)=>{
-    const k=v.knobs||{},bits=[];
-    if(k.sub_vs_lead!=null)bits.push("heaviness "+k.sub_vs_lead);
-    if(k.duff_level!=null)bits.push("duff "+k.duff_level);
-    if(v.closeness!=null)bits.push("match "+v.closeness+"%");
-    return '<div class="verrow" data-audio="'+encodeURI(v.audio)+'"><button class="verplay" aria-label="play version"><svg width="12" height="14" viewBox="0 0 14 16"><path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/></svg></button><div class="vermeta"><b>v'+v.v+'</b>'+esc(bits.join(" · "))+(i===0?'<span class="cur">current</span>':'')+'</div></div>';
+  const cur=vs.find(v=>v.current)||vs[vs.length-1];applyKnobs(cur.knobs);   // sliders reflect the current mix
+  box.innerHTML='<div class="vhead">Versions · '+vs.length+' · tap to A/B compare</div>'+vs.slice().reverse().map(v=>{
+    const k=v.knobs||{};
+    const label=(v.label==="original")?"Original":("Version "+v.v);
+    const chips=Object.keys(KNAME).filter(pk=>k[pk]!=null).map(pk=>'<span class="vchip">'+KNAME[pk]+' <b>'+esc(k[pk])+'</b></span>').join("")
+      +(v.closeness!=null?'<span class="vchip mt">Match <b>'+esc(v.closeness)+'%</b></span>':'');
+    const badge=v.current?'<span class="curbadge">current</span>':'';
+    const use=v.current?'':'<button class="veruse" data-v="'+v.v+'" title="Make this your main mix">Use</button>';
+    return '<div class="verrow'+(v.current?' on is-current':'')+'" data-audio="'+encodeURI(v.audio)+'"><button class="verplay" aria-label="play version"><svg width="12" height="14" viewBox="0 0 14 16"><path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/></svg></button><div class="verinfo"><div class="verhead"><b>'+label+'</b>'+badge+'<span class="verage">'+ago(v.ts)+'</span></div><div class="verchips">'+chips+'</div></div>'+use+'</div>';
   }).join("");
-  box.querySelectorAll(".verrow").forEach(r=>r.onclick=()=>playVersion(r.dataset.audio,r));}
+  box.querySelectorAll(".verrow").forEach(r=>r.onclick=e=>{if(e.target.closest(".veruse"))return;playVersion(r.dataset.audio,r);});
+  box.querySelectorAll(".veruse").forEach(bt=>bt.onclick=async e=>{e.stopPropagation();bt.textContent="…";await useVersion(name,bt.dataset.v);});}
 function playVersion(url,row){$("vid").pause();$("vid").style.display="none";$("wave").style.display="block";
   $("nowart").style.display="flex";media=$("au");$("au").src=url;drawWave(url);$("au").play().catch(()=>{});
-  document.querySelectorAll(".verrow").forEach(x=>x.classList.remove("on"));row.classList.add("on");}
+  document.querySelectorAll(".verrow").forEach(x=>x.classList.remove("on"));row.classList.add("on");
+  const lbl=row.querySelector(".verhead b");$("nowsub").textContent=(lbl?"playing "+lbl.textContent+" · ":"")+"voice + duff";}
+async function useVersion(name,v){
+  try{const r=await fetch("/api/versions/"+encodeURIComponent(name)+"/use",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({v:+v})});
+    const res=await r.json();if(res&&res.audio){await loadLibrary();playTrack(res);}}catch(e){}}
 $("play").onclick=()=>{if(!current)return;media.paused?media.play():media.pause();};
 ["au","vid"].forEach(id=>{$(id).addEventListener("play",()=>setPlayIcon(true));$(id).addEventListener("pause",()=>setPlayIcon(false));
   $(id).addEventListener("ended",()=>{if($(id)===media)advance(1);});
