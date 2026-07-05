@@ -112,10 +112,29 @@ cd studio && ../.venv/bin/python server.py
 
 Or double-click **`Halal Duff Studio.app`** (a tiny bundle that health-checks the local server and opens it).
 
+**Windows** (10/11, Python 3.12):
+
+```powershell
+# system tools — via winget (or scoop / choco)
+winget install Gyan.FFmpeg yt-dlp.yt-dlp
+git clone https://github.com/Shahzeb-A/halal-duff-studio.git; cd halal-duff-studio
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+# launch: double-click "Halal Duff Studio.bat"  (or run it from PowerShell)
+```
+
+Make sure `ffmpeg` and `yt-dlp` are on your PATH (open a new terminal after installing).
+
 The backend is a single FastAPI file (`studio/server.py`) over a plain-Python pipeline; the frontend is one
 hand-written `studio/web/index.html` with **no build step and no JS framework**. Hack away.
 
 </details>
+
+> ⏱️ **Heads-up on speed:** on **CPU** (the default on any machine without the GPU option), isolating the
+> vocal for one song takes **~15–30 min** — the AI separation model is heavy — and the **first** conversion
+> also downloads that model (~640 MB, one-time). This is expected, not a hang; the song lands in your Library
+> when it's done. For **~2 min a song**, add a [RunPod](https://runpod.io) key in **Settings** and tick
+> **RunPod GPU** (see below). Works on macOS, Windows, and Linux.
 
 <details>
 <summary><h3>🧪 &nbsp;I'm an enthusiast — show me how it works</h3></summary>

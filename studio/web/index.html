@@ -563,7 +563,7 @@ function poll(job_id){$("jobbar").style.display="block";let fails=0;const t0=Dat
     try{const r=await fetch("/api/status/"+job_id);j=await r.json();fails=0;}
     catch(e){if(++fails>=5){clearInterval(iv);setBusy(false);$("jobbar").style.display="none";$("status").innerHTML="<b>lost connection</b> · is the server still running? reload to retry.";}return;}
     if(j.status==="running"){const el=Math.round((Date.now()-t0)/1000);
-      if(el>1500){clearInterval(iv);setBusy(false);$("jobbar").style.display="none";$("jobfill").style.width="0";$("status").innerHTML="<b>timed out</b> · the job ran too long — reload and try again.";return;}
+      if(el>3600){clearInterval(iv);setBusy(false);$("jobbar").style.display="none";$("jobfill").style.width="0";$("status").innerHTML="<b>still working in the background…</b> · CPU conversions can take 15–30 min — the song will appear in your <b>Library</b> when it finishes. For ~2 min instead, add a RunPod key in <b>Settings</b> and tick GPU.";return;}
       $("status").textContent=(j.desc||"working…")+" · "+fmt(el)+" elapsed";$("jobfill").style.width=Math.round((j.progress||0)*100)+"%";}
     else{clearInterval(iv);setBusy(false);$("jobbar").style.display="none";$("jobfill").style.width="0";
       if(j.status==="done")onResult(j.result);else $("status").innerHTML="<b>error</b> · "+esc(j.error||"failed");}},1200);}
