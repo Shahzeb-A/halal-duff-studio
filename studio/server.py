@@ -1,6 +1,7 @@
 """Halal Duff Studio — custom FastAPI backend + hand-built faceplate frontend (replaces the Gradio UI).
 Same pipeline underneath (engine.convert / render / deep_match); this just gives full design control.
-Run:  cd studio && ../.venv/bin/python server.py   ->  http://127.0.0.1:7860
+Run from studio/ with the venv python (macOS/Linux: ../.venv/bin/python server.py — on Windows use the venv's
+Scripts python), then open http://127.0.0.1:7860. Or just use the double-click launcher for your OS.
 """
 import os, sys, uuid, threading, subprocess, glob, traceback, json, shutil, time
 from urllib.parse import quote, unquote, urlparse
@@ -56,7 +57,8 @@ def _dur(path):
     if path in _DUR: return _DUR[path]
     try:
         out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                              "-of", "default=nk=1:nw=1", path], capture_output=True, text=True).stdout.strip()
+                              "-of", "default=nk=1:nw=1", path], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace").stdout.strip()
         s = float(out); _DUR[path] = f"{int(s // 60)}:{int(s % 60):02d}"
     except Exception:
         _DUR[path] = ""
@@ -344,7 +346,13 @@ async def set_config(req: Request):
     saved = False
     if key:
         with open(kp, "w") as f: f.write(key)
-        os.chmod(kp, 0o600); saved = True
+        saved = True
+        if os.name == "nt":                                          # chmod is a no-op on Windows; lock via icacls
+            try: subprocess.run(["icacls", kp, "/inheritance:r", "/grant:r", f"{os.environ.get('USERNAME','')}:F"],
+                                capture_output=True)
+            except Exception: pass
+        else:
+            os.chmod(kp, 0o600)
     return JSONResponse({"saved": saved, "has_key": os.path.exists(kp)})
 
 def _backfill_covers():

@@ -203,6 +203,9 @@ double-click works).
 **`Create Desktop Shortcut.bat`** once — it drops a **Halal Duff Studio** shortcut on your Desktop (with the
 app icon) that launches everything on click.
 
+**Linux** — run **`./Halal Duff Studio.sh`** (it opens your browser with `xdg-open`). If a download stripped the
+executable bit: `chmod +x "Halal Duff Studio.sh"`.
+
 > Both launchers start the local server automatically and open http://127.0.0.1:7860. A single bundled
 > `.exe` / notarized `.app` isn't shipped because the app pulls in large ML models + ffmpeg — the launchers
 > above give the same one-click experience without a multi-GB download. *(Advanced: you can build a
@@ -212,12 +215,19 @@ app icon) that launches everything on click.
 
 ## ⚡ Optional: the fast lane (RunPod GPU)
 
-Separation is the heavy step. On an 8 GB Mac it runs on CPU (~10–15 min a song, but free). To make it ~2 min:
+Separation is the heavy step. By default it runs on **CPU** (~15–30 min a song, but free). To make it ~2 min:
 
 1. Get a [RunPod](https://runpod.io) API key (Settings → API Keys).
 2. In the app, open **⚙ Settings → RunPod key**, paste it **once**. You can **edit or replace it any time** from
-   the same place — it's stored locally at `~/.runpod_key` (permissions `600`) and never leaves your machine.
+   the same place — it's stored locally at `~/.runpod_key` and never leaves your machine.
 3. Tick the **⚡ RunPod GPU** box before converting.
+
+> 💡 **Got an NVIDIA GPU (Windows/Linux)?** Local separation uses it automatically — fast, and no RunPod needed.
+> The RunPod path is mainly for machines without a usable GPU (like an 8 GB Mac).
+>
+> **RunPod prerequisite:** the GPU path drives the pod over SSH, so you need an **OpenSSH client** and a key.
+> macOS/Linux have `ssh` built in; on **Windows** add it via *Settings → Apps → Optional Features → OpenSSH
+> Client*. Then create a key once: `ssh-keygen -t ed25519`. (CPU conversion needs none of this.)
 
 **How the billing works — and why it's safe:**
 

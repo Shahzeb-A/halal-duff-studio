@@ -7,6 +7,7 @@ WORK     = os.path.join(STUDIO, "work")               # per-song working dirs
 MASTERS  = os.path.join(ACA, "Masters")               # final outputs "<Song>.m4a/.mp4"
 SAMPLES  = os.path.join(ACA, "duff_samples", "framedrum")
 IR       = os.path.join(ACA, "reverb_ir_clean.wav")
+MODELS   = os.path.join(ACA, "models")                # separation-model weights cache (cross-platform, gitignored)
 ROFORMER = "model_bs_roformer_ep_317_sdr_12.9755.ckpt"
 
 # ONE venv for everything (DSP, groove, dynamic engine, vocal isolation, demucs). Cross-platform:
@@ -16,6 +17,9 @@ _VENV_PY = os.path.join(ACA, ".venv", "Scripts", "python.exe") if os.name == "nt
 # Fall back to whatever interpreter is running the server if the venv layout differs (e.g. conda).
 import sys as _sys
 PY_SOTA  = _VENV_PY if os.path.exists(_VENV_PY) else _sys.executable
+if not os.path.exists(_VENV_PY):
+    print(f"[config] venv interpreter not found at {_VENV_PY} — falling back to {_sys.executable}. "
+          f"Ensure it has the deps: pip install -r requirements.txt", file=_sys.stderr)
 AUDIOSEP_CMD = [PY_SOTA, "-m", "audio_separator.utils.cli"]   # dead path (separate_vocal.py uses the Python API); kept for ref
 PY_BASE  = PY_SOTA
 
@@ -26,5 +30,5 @@ FFMPEG   = "ffmpeg"
 # separation backend: "local" (CPU on this 8GB Mac) or "runpod" (GPU offload, see runpod_sep.py)
 SEP_MODE = os.environ.get("DUFF_SEP", "local")
 
-for d in (WORK, MASTERS):
+for d in (WORK, MASTERS, MODELS):
     os.makedirs(d, exist_ok=True)

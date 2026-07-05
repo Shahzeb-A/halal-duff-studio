@@ -5,7 +5,7 @@ from demucs.apply import apply_model
 from demucs.audio import convert_audio
 inp, out = sys.argv[1], sys.argv[2]
 stem = sys.argv[3] if len(sys.argv) > 3 else "drums"   # drums | other | bass | vocals
-dev = "cpu"   # 8GB Mac: htdemucs_ft OOMs on MPS for a full song (HANDOFF) -> CPU is the reliable path
+dev = "cuda" if torch.cuda.is_available() else "cpu"   # CUDA on Win/Linux GPUs; Mac has no CUDA -> CPU (MPS OOMs on 8GB)
 m = get_model("htdemucs_ft"); m.to(dev).eval()
 wav, sr = sf.read(inp, dtype="float32", always_2d=True)
 wav = convert_audio(torch.from_numpy(wav.T).float(), sr, m.samplerate, m.audio_channels)

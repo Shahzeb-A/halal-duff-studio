@@ -18,10 +18,15 @@ def _san(name):
 
 def _run(cmd, desc=""):
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True)
+        # UTF-8 decode of tool output — yt-dlp/ffmpeg emit UTF-8 (song titles, paths); the OS locale codec
+        # (cp1252 on Windows) would mojibake or CRASH on non-ASCII titles. errors='replace' never crashes.
+        p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     except FileNotFoundError:
         tool = os.path.basename(str(cmd[0]))
-        raise RuntimeError(f"'{tool}' not found — install it first (e.g. brew install ffmpeg / brew install yt-dlp)")
+        hint = ("winget install Gyan.FFmpeg yt-dlp.yt-dlp" if os.name == "nt" else
+                "brew install ffmpeg yt-dlp" if sys.platform == "darwin" else
+                "apt install ffmpeg  &&  pip install yt-dlp")
+        raise RuntimeError(f"'{tool}' not found on PATH — install ffmpeg + yt-dlp, then reopen your terminal ({hint})")
     if p.returncode != 0:
         raise RuntimeError(f"{desc or cmd[0]} failed (rc={p.returncode}):\n{(p.stderr or p.stdout)[-1500:]}")
     return p.stdout
@@ -90,10 +95,9 @@ def prepare(source, name, want_pad=False, progress=None, sep_mode=None):
         _run([C.PY_BASE, os.path.join(C.ACA, "extract_drums_one.py"), src, other, "other"], "demucs other")
     # 3) lead vocal (roformer via the Python API wrapper — ~10 min on CPU)
     if not os.path.exists(vocals):
-        _first = not glob.glob(os.path.expanduser("~/.cache/audio-separator-models/*.ckpt")) \
-                 and not glob.glob(os.path.join(C.WORK, "**", "*.ckpt"), recursive=True)
-        _prog(progress, 0.45, "Isolating the vocal — first run also downloads the model…" if _first
-                              else "Isolating the vocal (roformer, ~10 min on CPU)…")
+        _first = not glob.glob(os.path.join(C.MODELS, "*.ckpt"))   # model cached in our own models/ dir (cross-platform)
+        _prog(progress, 0.45, "Isolating the vocal — the first run also downloads the model (~640 MB, one time)…" if _first
+                              else "Isolating the vocal (roformer, ~10-25 min on CPU — faster with RunPod GPU)…")
         sep = os.path.join(work, "sep"); os.makedirs(sep, exist_ok=True)
         out = _run([C.PY_SOTA, os.path.join(C.STUDIO, "separate_vocal.py"), src, sep, C.ROFORMER], "roformer")
         vpath = next((ln[len("VOCALS="):].strip() for ln in out.splitlines() if ln.startswith("VOCALS=")), "")

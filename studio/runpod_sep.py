@@ -74,8 +74,8 @@ def _terminate(pod_id):
             runpod.terminate_pod(pod_id); _LIVE_PODS.discard(pod_id); return
         except Exception as e:
             err = e; time.sleep(2)
-    print(f"[runpod] ⚠️  FAILED to terminate pod {pod_id} ({err}). KILL IT MANUALLY NOW: "
-          f"runpodctl remove pod {pod_id}", file=sys.stderr)
+    print(f"[runpod] ⚠️  FAILED to terminate pod {pod_id} ({err}). Remove it now at "
+          f"https://console.runpod.io/pods  (or, if you have the CLI: runpodctl remove pod {pod_id})", file=sys.stderr)
     _LIVE_PODS.discard(pod_id)
 
 def _kill_all(*_):
@@ -175,7 +175,7 @@ def _wait_ready(pod_id, budget_s=420):
 
 def _ssh(host, port, cmd, check=True):
     full = ["ssh", *_SSH_BASE, "-p", str(port), f"root@{host}", cmd]
-    p = subprocess.run(full, text=True, capture_output=True)
+    p = subprocess.run(full, text=True, capture_output=True, encoding="utf-8", errors="replace")
     if p.stdout: print(p.stdout, end="", flush=True)
     if check and p.returncode != 0:
         raise RuntimeError(f"remote cmd failed (rc={p.returncode}):\n{p.stderr[-1500:]}")
@@ -184,7 +184,7 @@ def _ssh(host, port, cmd, check=True):
 def _scp(host, port, src, dst, up=True):
     a, b = (src, f"root@{host}:{dst}") if up else (f"root@{host}:{src}", dst)
     full = ["scp", *_SSH_BASE, "-P", str(port), a, b]
-    p = subprocess.run(full, text=True, capture_output=True)
+    p = subprocess.run(full, text=True, capture_output=True, encoding="utf-8", errors="replace")
     if p.returncode != 0:
         raise RuntimeError(f"scp {'up' if up else 'down'} failed:\n{p.stderr[-1000:]}")
 
@@ -241,6 +241,14 @@ def separate(source_wav, out_dir, progress=None):
             try: progress(f, m)
             except Exception: pass
     os.makedirs(out_dir, exist_ok=True)
+    import shutil as _sh
+    for _t in ("ssh", "scp"):                                        # the GPU path drives the pod over SSH
+        if not _sh.which(_t):
+            raise RuntimeError("RunPod GPU needs the OpenSSH client (ssh + scp). Windows: Settings → Apps → "
+                               "Optional Features → add 'OpenSSH Client'. Linux: apt install openssh-client. "
+                               "Or leave GPU off to convert locally on CPU.")
+    if not os.path.exists(SSHKEY + ".pub"):
+        raise RuntimeError(f"no SSH key at {SSHKEY} — create one first: ssh-keygen -t ed25519 -f \"{SSHKEY}\" -N \"\"")
     _p(0.26, "starting GPU pod…")
     pid = _start_pod("halal-duff-sep")
     try:

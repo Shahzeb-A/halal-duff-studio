@@ -14,6 +14,9 @@ studio/work/
 *.key
 .env
 
+# ── downloaded model weights (~640 MB, fetched on first run) ──
+models/
+
 # ── python / venv ─────────────────────────────────────────────
 .venv/
 __pycache__/
