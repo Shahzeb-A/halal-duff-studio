@@ -120,7 +120,7 @@ def main():
     KAS=[soften(synth_ka(A,rng),2.0) for _ in range(8)]
     L=np.zeros(N+SR,np.float32); R=np.zeros(N+SR,np.float32)
     def place(shot,t,g,pan=0.0):
-        i=int(t*SR); j=min(len(L),i+len(shot)); k=j-i
+        i=max(0,int(t*SR)); j=min(len(L),i+len(shot)); k=j-i   # clamp: a jittered onset near t=0 can go negative
         if k<=0: return
         gl=g*np.cos((pan*0.5+0.5)*np.pi/2); gr=g*np.sin((pan*0.5+0.5)*np.pi/2); L[i:j]+=shot[:k]*gl; R[i:j]+=shot[:k]*gr
     # VELOCITY TRANSFER: each duff hit plays at the ORIGINAL drum hit's actual loudness,

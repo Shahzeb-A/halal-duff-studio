@@ -66,7 +66,7 @@ def main():
     kit = f"{sz}_Hit_cap{round(dum_cap,2)}+spark"
     L = np.zeros(N+SR, np.float32); R = np.zeros(N+SR, np.float32)
     def place(shot, t, g, pan):
-        i = int(t*SR); j = min(len(L), i+len(shot)); k = j-i
+        i = max(0, int(t*SR)); j = min(len(L), i+len(shot)); k = j-i   # clamp: a jittered onset near t=0 can go negative
         if k <= 0: return
         gl = g*np.cos((pan*0.5+0.5)*np.pi/2); gr = g*np.sin((pan*0.5+0.5)*np.pi/2); L[i:j]+=shot[:k]*gl; R[i:j]+=shot[:k]*gr
     kE = G.envf(G.bp(drums,40,140),6); cE = G.envf(G.bp(drums,1200,5000),6); hE = G.envf(G.bp(drums,6000,13000),5)
