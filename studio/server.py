@@ -214,6 +214,22 @@ def index(): return FileResponse(os.path.join(WEB, "index.html"), headers={"Cach
 @app.get("/favicon.svg")
 def favicon(): return FileResponse(os.path.join(WEB, "favicon.svg"), media_type="image/svg+xml")
 
+@app.get("/manifest.json")
+def manifest(): return FileResponse(os.path.join(WEB, "manifest.json"), media_type="application/manifest+json")
+
+@app.get("/sw.js")
+def sw(): return FileResponse(os.path.join(WEB, "sw.js"), media_type="application/javascript",
+                             headers={"Cache-Control": "no-store"})     # scope=/, always fresh
+
+@app.get("/logo.svg")
+def logo(): return FileResponse(os.path.join(WEB, "logo.svg"), media_type="image/svg+xml")
+
+@app.get("/icon-{size}.png")
+def pwa_icon(size: str):
+    f = os.path.join(WEB, f"icon-{os.path.basename(size)}.png")
+    if not os.path.exists(f): return JSONResponse({"error": "not found"}, status_code=404)
+    return FileResponse(f, media_type="image/png")
+
 @app.get("/api/library")
 def library(): return JSONResponse(_library())
 

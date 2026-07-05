@@ -206,6 +206,11 @@ app icon) that launches everything on click.
 **Linux** — run **`./Halal Duff Studio.sh`** (it opens your browser with `xdg-open`). If a download stripped the
 executable bit: `chmod +x "Halal Duff Studio.sh"`.
 
+**📱 On your phone** — it's an installable app (PWA). Open the running server's address on your phone (your
+computer's local IP, e.g. `http://192.168.1.20:7860`, or a tunnel URL), then **Add to Home Screen** — it installs
+a real home-screen icon and opens fullscreen like a native app. The heavy processing still runs on the machine
+hosting the server, so the phone is a clean mobile client for your own instance.
+
 > Both launchers start the local server automatically and open http://127.0.0.1:7860. A single bundled
 > `.exe` / notarized `.app` isn't shipped because the app pulls in large ML models + ffmpeg — the launchers
 > above give the same one-click experience without a multi-GB download. *(Advanced: you can build a
