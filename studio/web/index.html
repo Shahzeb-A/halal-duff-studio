@@ -394,7 +394,7 @@ function paintWave(prog){if(!peaks)return;const cv=$("wave"),W=cv.parentElement.
 function setPlayIcon(p){$("playicon").innerHTML=p?'<rect x="2" y="1" width="3.5" height="14" fill="currentColor"/><rect x="8.5" y="1" width="3.5" height="14" fill="currentColor"/>':'<path d="M2 1 L12 8 L2 15 Z" fill="currentColor"/>';}
 function playTrack(it){current=it;auditing=null;$("auditbar").classList.add("hidden");
   $("nptitle").textContent=it.name;$("nptt").textContent=it.name;setArt($("npart"),it,34);
-  $("dl").href=it.video||it.audio;$("dl").setAttribute("download",it.name+(it.video?".mp4":".m4a"));
+  $("dl").href="/download/"+encodeURIComponent(it.name)+".mp3";$("dl").setAttribute("download",it.name+".mp3");
   stageMode=it.video?"video":"wave";
   media=$("au");$("au").src=it.audio;                       // audio is ALWAYS the source of truth (the current m4a mix)
   if(it.video){$("vid").src=it.video;$("vid").muted=true;}  // video is a muted, synced visual layer

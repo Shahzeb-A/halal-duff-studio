@@ -231,6 +231,21 @@ def media(fname: str): return _serve(fname)
 @app.get("/cover/{fname}")
 def cover(fname: str): return _serve(fname)
 
+@app.get("/download/{fname}")
+def download(fname: str):
+    """Serve the track as a fresh MP3 (universal — attaches cleanly to WhatsApp, no m4a quirks).
+    Transcoded once per render and cached (keyed by the master's mtime, so a re-render regenerates it)."""
+    name = os.path.splitext(os.path.basename(unquote(fname)))[0]
+    src = os.path.join(C.MASTERS, name + ".m4a")
+    if not os.path.exists(src):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    cache = os.path.join(C.MASTERS, ".dlcache"); os.makedirs(cache, exist_ok=True)
+    mp3 = os.path.join(cache, f"{engine._san(name)}-{int(os.path.getmtime(src))}.mp3")
+    if not os.path.exists(mp3):
+        subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", src,
+                        "-c:a", "libmp3lame", "-q:a", "2", "-map_metadata", "0", mp3], check=True)
+    return FileResponse(mp3, media_type="audio/mpeg", filename=name + ".mp3")
+
 @app.get("/api/versions/{name}")
 def versions(name: str):
     clean = engine._san(unquote(name))
